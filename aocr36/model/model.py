@@ -305,7 +305,6 @@ class Model(object):
         current_step = 0
         num_correct = 0.0
         num_total = 0.0
-        image_file_data = b''
         s_gen = DataGen(data_path, self.buckets, self.phase, epochs=1, max_width=self.max_original_width)
  
         for batch in s_gen.gen(1):
@@ -399,7 +398,6 @@ class Model(object):
 			
     def train(self, data_path, num_epoch):
         logging.info('num_epoch: %d', num_epoch)
-        image_file_data = b''        
         s_gen = DataGen(
             data_path, self.buckets, self.phase,
             epochs=num_epoch, max_width=self.max_original_width
@@ -481,7 +479,7 @@ class Model(object):
         self.saver_all.save(self.sess, self.checkpoint_path, global_step=self.global_step)
 
     # step, read one batch, generate gradients
-    def step(self, batch, forward_only, image_file_data):
+    def step(self, batch, forward_only):
         img_data = batch['data']
         decoder_inputs = batch['decoder_inputs']
         target_weights = batch['target_weights']
