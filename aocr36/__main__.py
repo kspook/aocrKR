@@ -230,13 +230,13 @@ def main(args=None):
             logging.info('dataset')		
             logging.info(parameters.annotations_path)	
             logging.info(parameters.output_path)
-            logging.info(parameters.log_step)				
+            #logging.info(parameters.log_step)				
             logging.info(parameters.save_filename)		
             #logging.info('dataset')					
             dataset.generate(
                 parameters.annotations_path,
                 parameters.output_path,
-                parameters.log_step,
+                #parameters.log_step,
                 parameters.force_uppercase,
                 parameters.save_filename
             )
