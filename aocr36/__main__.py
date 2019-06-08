@@ -292,8 +292,8 @@ def main(args=None):
                     logging.error('Result: error while opening file %s.', filename)
                     #continue
             text, probability = model.predict(img_file_data)
-            #text, probability = model.predict(img_file_data)                
             logging.info('Result: OK. %s %s', '{:.2f}'.format(probability), text)
+            #text, probability = model.predict(img_file_data)                
         elif parameters.phase == 'export':
             exporter = Exporter(model)
             exporter.save(parameters.export_path, parameters.format)
