@@ -55,11 +55,13 @@ def process_args(args, defaults):
                                 type=str, default=defaults.NEW_DATASET_PATH,
                                 help=('output path (default: %s)'
                                       % defaults.NEW_DATASET_PATH))
+    '''
     parser_dataset.add_argument('--log-step', dest='log_step',
                                 type=int, default=defaults.LOG_STEP,
                                 metavar=defaults.LOG_STEP,
                                 help=('print log messages every N steps (default: %s)'
                                       % defaults.LOG_STEP))
+    '''
     parser_dataset.add_argument('--no-force-uppercase', dest='force_uppercase',
                                 action='store_false', default=defaults.FORCE_UPPERCASE,
                                 help='do not force uppercase on label values')
@@ -200,8 +202,8 @@ def process_args(args, defaults):
     # Predicting
     parser_predict = subparsers.add_parser('predict', parents=[parser_base, parser_model],
                                            help='Predict text from files (feed through stdin).')
-    parser_predict.set_defaults(phase='predict', steps_per_checkpoint=0, batch_size=1)
-
+    parser_predict.set_defaults(phase='predict', steps_per_checkpoint=0, batch_size=1, image_file_data=b'')
+    parser_predict.add_argument('fname', metavar='FILE', help='file to predict')
     parameters = parser.parse_args(args)
     return parameters
 
@@ -277,16 +279,21 @@ def main(args=None):
                 data_path=parameters.dataset_path
             )
         elif parameters.phase == 'predict':
-            for line in sys.stdin:
-                filename = line.rstrip()
-                try:
+            filename = parameters.fname       
+            #for line in sys.stdin.name:
+            #while filename:
+                #filename = line.rstrip()
+            print('filename,', filename)
+            try:
                     with open(filename, 'rb') as img_file:
                         img_file_data = img_file.read()
-                except IOError:
+                        #self.image_file_data=image_file_data
+            except IOError:
                     logging.error('Result: error while opening file %s.', filename)
-                    continue
-                text, probability = model.predict(img_file_data)
-                logging.info('Result: OK. %s %s', '{:.2f}'.format(probability), text)
+                    #continue
+            text, probability = model.predict(img_file_data)
+            #text, probability = model.predict(img_file_data)                
+            logging.info('Result: OK. %s %s', '{:.2f}'.format(probability), text)
         elif parameters.phase == 'export':
             exporter = Exporter(model)
             exporter.save(parameters.export_path, parameters.format)

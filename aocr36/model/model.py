@@ -149,7 +149,7 @@ class Model(object):
             self.target_weights = []
             for i in xrange(self.decoder_size + 1):
                 self.decoder_inputs.append(
-                    tf.tile([1], [num_images])   #  tf.tile([0], [num_images])
+                    tf.tile([0], [num_images])   #  tf.tile([0], [num_images])
                 )
                 if i < self.decoder_size:
                     self.target_weights.append(tf.tile([1.], [num_images]))
@@ -291,12 +291,13 @@ class Model(object):
 
         output_feed = [self.prediction, self.probability]
         outputs = self.sess.run(output_feed, input_feed)
-
+ 
+ 
         text = outputs[0]
         probability = outputs[1]
         if sys.version_info >= (3,):
-            #text = text.decode('iso-8859-1')
-            text = text.decode('utf-8')			
+                #text = text.decode('iso-8859-1')
+                text = text.decode('utf-8')
 
         return (text, probability)
 
@@ -304,14 +305,15 @@ class Model(object):
         current_step = 0
         num_correct = 0.0
         num_total = 0.0
-
-        s_gen = DataGen(data_path, self.buckets, epochs=1, max_width=self.max_original_width)
+        image_file_data = b''
+        s_gen = DataGen(data_path, self.buckets, self.phase, epochs=1, max_width=self.max_original_width)
  
         for batch in s_gen.gen(1):
             current_step += 1
             # Get a batch (one image) and make a step.
             start_time = time.time()
-            result = self.step(batch, self.forward_only)
+            image_file_data=b''  # blank data
+            result = self.step(batch, self.forward_only, image_file_data)
             curr_step_time = (time.time() - start_time)
  
             num_total += 1
@@ -397,8 +399,9 @@ class Model(object):
 			
     def train(self, data_path, num_epoch):
         logging.info('num_epoch: %d', num_epoch)
+        image_file_data = b''        
         s_gen = DataGen(
-            data_path, self.buckets,
+            data_path, self.buckets, self.phase,
             epochs=num_epoch, max_width=self.max_original_width
         )
         step_time = 0.0
@@ -478,7 +481,7 @@ class Model(object):
         self.saver_all.save(self.sess, self.checkpoint_path, global_step=self.global_step)
 
     # step, read one batch, generate gradients
-    def step(self, batch, forward_only):
+    def step(self, batch, forward_only, image_file_data):
         img_data = batch['data']
         decoder_inputs = batch['decoder_inputs']
         target_weights = batch['target_weights']
@@ -605,4 +608,3 @@ def revert_lex(lex):
                 c_idx=0                     
         return l_new	
   
-        #return ([GO_ID]+[ int(lex) ]+[EOS_ID])

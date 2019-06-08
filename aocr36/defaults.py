@@ -56,4 +56,3 @@ class Config(object):
     USE_DISTANCE = True
 
     # Dataset generation
-    LOG_STEP = 500

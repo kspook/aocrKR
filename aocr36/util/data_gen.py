@@ -23,7 +23,8 @@ try:
 except AttributeError:
     TFRecordDataset = tf.contrib.data.TFRecordDataset  # pylint: disable=invalid-name
 
-
+def _bytes_feature(value):
+        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 class DataGen(object):
     GO_ID = 1
@@ -53,6 +54,7 @@ class DataGen(object):
     def __init__(self,
                  annotation_fn,
                  buckets,
+                 phase,    
                  epochs=1000,
                  max_width=None):
         """
@@ -69,6 +71,7 @@ class DataGen(object):
 
         self.bucket_specs = buckets
         self.bucket_data = BucketData()
+        self.phase= phase
 
         dataset = TFRecordDataset([annotation_fn])
         dataset = dataset.map(self._parse_record)
@@ -79,22 +82,21 @@ class DataGen(object):
         self.bucket_data = BucketData()
 
     def gen(self, batch_size):
-        #logging.info(' data_gen.gen()') 
-        dataset = self.dataset.batch(batch_size)
-        iterator = dataset.make_one_shot_iterator()
+          #logging.info(' data_gen.gen()') 
+          dataset = self.dataset.batch(batch_size)
+          iterator = dataset.make_one_shot_iterator()
  		
-        images, labels, comments = iterator.get_next()
-  	
-        with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
-   
-            while True:
+          images, labels, comments = iterator.get_next()
+           
+          with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
+             while True:
                 try:				
                     raw_images, raw_labels, raw_comments = sess.run([images, labels, comments])
-  
+                    #print('raw_images, raw_labels, raw_comments ' , raw_images, raw_labels, raw_comments)  
                     for img, lex, comment in zip(raw_images, raw_labels, raw_comments):
-                        #print('lex, comment, ' , lex, comment)
+                        #print('img, lex, comment, ' , lex, comment)
  
-                        if self.max_width and (Image.open(IO(img)).size[0] <= self.max_width):
+                        if self.max_width and (Image.open(IO(img)).size[0] <= self.max_width) :
                              						
                             word = self.convert_lex(lex)
                              
@@ -105,12 +107,11 @@ class DataGen(object):
                                     self.bucket_specs,
                                     go_shift=1)
                                 yield bucket
-
+ 
                 except tf.errors.OutOfRangeError:
                     break
  
-        self.clear()
-
+          self.clear()
     def convert_lex(self, lex):
 
         if sys.version_info >= (3,):
@@ -124,9 +125,7 @@ class DataGen(object):
          
         GO_ID = 1
         EOS_ID = 2
-
-
-
+  
         label_file = DEFAULT_LABEL_FILE
         with io.open(label_file, 'r', encoding='utf-8') as f:
             labels = f.read().splitlines()
@@ -146,24 +145,7 @@ class DataGen(object):
                 s=str(n)											
             l_id.append(n)	
         label_list=list(zip(l_id, labels)) 
-        '''      
-        l_id=[] 
-        k=4
-        max_i=0
-        s=""	
-        n=0
-	
-        for char in lex:
-            i=self.CHARMAP.index(char)	
-            n= i+k
-            s=str(n)				
-            while ('1' in s) or('2' in s) or ('3' in s):				
-                k+=1
-                n=i+k
-                s=str(n)											
-            l_id.append(n)	
-        label_list=list(zip(l_id, labels)) 
-        '''         
+        
         lex_new=[] 
         n=""
         c_idx=0
@@ -185,7 +167,6 @@ class DataGen(object):
         return np.array(
            [GO_ID] + [i for i in lex_new] + [EOS_ID],
            dtype=np.int32)
-
  
         #return ([GO_ID]+[ int(lex) ]+[EOS_ID])
 
