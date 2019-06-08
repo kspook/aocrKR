@@ -311,8 +311,7 @@ class Model(object):
             current_step += 1
             # Get a batch (one image) and make a step.
             start_time = time.time()
-            image_file_data=b''  # blank data
-            result = self.step(batch, self.forward_only, image_file_data)
+            result = self.step(batch, self.forward_only)
             curr_step_time = (time.time() - start_time)
  
             num_total += 1
